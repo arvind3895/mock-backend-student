@@ -43,9 +43,9 @@ router.post('/login', (req, res) => {
       });
 
       if(!loginCred) {
-        res.status(400).send({error: 'Invalid UserName or password'});
+        return res.status(400).send({error: 'Invalid UserName or password'});
       }
-      res.status(200).send({message: 'Successfully loggedin',...loginCred})
+      return res.status(200).send({message: 'Successfully loggedin',...loginCred})
     });
   })
 
