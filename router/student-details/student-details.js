@@ -121,6 +121,7 @@ router.delete('/removeUser', (req,res) => {
       if (err) return console.log(err);
       userDetails = JSON.parse(data);
       const index = userDetails.findIndex(user => user.email === newRequest.email);
+      if (index < 0) res.status(400).send({message: 'User not exists'});
       userDetails.splice(index, 1);
       fs.writeFile('public/school/studentDetails/users.json', JSON.stringify(userDetails) , err => {
           if (err) {
