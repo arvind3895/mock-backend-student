@@ -97,6 +97,7 @@ router.put('/changePassword', (req,res) => {
       if (err) return console.log(err);
       userDetails = JSON.parse(data);
       const index = userDetails.findIndex(user => user.email === newRequest.email);
+      if (index < 0) return res.status(400).send({message: "Invalid email address"});
       userDetails[index].password = newRequest.password;
       fs.writeFile('public/school/studentDetails/users.json', JSON.stringify(userDetails) , err => {
           if (err) {
