@@ -2,8 +2,23 @@ var express = require("express");
 var router = express.Router();
 var rootPath = require("../../util");
 fs = require("fs");
+const Joi = require('joi');
+const querystring = require('querystring');
 
-router.get("/school/student-details", function (req, res) {
+const schema = Joi.object().keys({
+  Id: Joi.number().integer(),
+  RegestrationNo: Joi.string(),
+  Name: Joi.string().min(3).required(),
+  Class: Joi.string().required(),
+  Division: Joi.string().required(),
+  Rank: Joi.number().integer().required(),
+  Fee: Joi.number().integer().required(),
+  DueDate: Joi.date().required(),
+  ContactNo: Joi.number().integer().min(1000000000).max(9999999999).required(),
+  Address: Joi.string().required()
+});
+
+router.get("/school/student-details", (req, res) => {
   fs.readFile(
     "public/school/studentDetails/studentDetails.json",
     "utf8",
@@ -11,7 +26,51 @@ router.get("/school/student-details", function (req, res) {
       if (err) {
         return console.log(err);
       }
-      res.status(200).send(data);
+      if(req.query.id) {
+        const user = (JSON.parse(data)).find(student => student.Id === parseInt(req.query.id));
+        if(!user) {
+          return res.status(400).send({message: "No Students record found"});
+        }
+        res.status(200).send(user);
+      }
+      else {
+        res.status(200).send(JSON.parse(data));
+      }
+    }
+  );
+
+  var options = rootPath("public/school/studentDetails");
+  var fileName = "studentDetails.json";
+});
+
+router.post("/student-details", (req, res) => {
+  let studentList;
+  const { error } = validateStudent(req.body);
+  if(error) {
+    return res.status(400).send(error.details[0].message);
+  }
+  fs.readFile(
+    "public/school/studentDetails/studentDetails.json",
+    "utf8",
+    function (err, data) {
+      studentList = JSON.parse(data);
+      if (err) {
+        return console.log(err);
+      }
+        const index = (JSON.parse(data)).findIndex(student => student.Id == req.body.Id);
+        if(index < 0) return res.status(400).send({message: "No data available"})
+        studentList[index] = req.body;
+        fs.writeFile('public/school/studentDetails/studentDetails.json', JSON.stringify(studentList) , err => {
+          if (err) {
+              return console.log(err);
+          }
+          fs.readFile('public/school/studentDetails/studentDetails.json', "utf8", (err, data) => {
+              if (err) {
+                  return console.log(err);
+              }
+              res.status(200).send(JSON.parse(data));
+          });
+      });
     }
   );
 
@@ -136,5 +195,9 @@ router.delete('/removeUser', (req,res) => {
       })
   })
 });
+
+function validateStudent(student) {
+  return Joi.validate(student, schema);
+}
 
 module.exports = router;
