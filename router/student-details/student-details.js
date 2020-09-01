@@ -68,7 +68,7 @@ router.post("/student-details", (req, res) => {
               if (err) {
                   return console.log(err);
               }
-              res.status(200).send(JSON.parse(data));
+              res.status(200).send(req.body);
           });
       });
     }
